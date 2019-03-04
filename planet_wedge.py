@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+import sys
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
@@ -94,16 +94,38 @@ def cum_draw(df=exo,color='k',mindate=1995,maxdate=2015,ax=None,norm=False,fill=
     return fig
 
 
-no_kepler_small = no_kepler.query('MASS < {}'.format(m_nep))
-all_kepler_small = all_kepler.query('R < {}'.format(r_nep))
+if __name__=='__main__':
+    import argparse
 
-fig, ax = plt.subplots(1,1, figsize=(12,8))
+    parser = argparse.ArgumentParser()
 
-subsets = [no_kepler, no_kepler_small, all_kepler, all_kepler_small]
-n = len(subsets)
+    parser.add_argument('--nosmall', action='store_true')
 
-for i,d in enumerate(subsets):
-    fig = cum_draw(d, ax=ax, color=tableau20[i], alpha=1, zorder=-len(d));
+    args = parser.parse_args()
 
-fig.savefig('planet_wedge.png', transparent=True)
+    if args.nosmall:
+        small_m = 0
+        small_r = 0
+    else:
+        small_m = m_nep
+        small_r = r_nep
+
+    no_kepler_small = no_kepler.query('MASS < {}'.format(small_m))
+    all_kepler_small = all_kepler.query('R < {}'.format(small_r))
+
+    fig, ax = plt.subplots(1,1, figsize=(12,8))
+
+    subsets = [no_kepler, no_kepler_small, all_kepler, all_kepler_small]
+    
+    n = len(subsets)
+
+    for i,d in enumerate(subsets):
+        fig = cum_draw(d, ax=ax, color=tableau20[i], alpha=1, zorder=-len(d));
+
+    tag = ''
+    if args.nosmall:
+        tag = '_nosmall'
+    filename = 'planet_wedge{}.png'.format(tag)
+
+    fig.savefig(filename, transparent=True)
     
